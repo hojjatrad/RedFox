@@ -1,25 +1,44 @@
 package com.msnguard.vpn.xray
 
 /**
- * پل ثابت به هسته‌ی بومی Xray (Go mobile، بسته‌ی `libxray.aar`).
+ * پل ثابت به هسته‌ی بومی Xray (Go mobile، AAR ساخته‌شده در core/xray-mobile).
  *
- * این سه تابع توسط AAR ساخته‌شده در فاز بیلد پیاده‌سازی می‌شوند
- * (نگاه کنید به `core/xray-mobile/` و گردش‌کار GitHub). امضای آن‌ها با
- * shim مربوطه هم‌خوان است؛ اگر AAR موجود نباشد، تلاش برای بارگذاری کلاس
- * به‌جای کرش، استثنای روشن برمی‌گرداند.
+ * دستور ساخت:
+ *   gomobile bind -javapkg=com.redfox -target=android/arm64,android/arm .
+ * روی بسته‌ی Go به نام `xray`، که کلاس‌های زیر را تولید می‌کند:
+ *
+ *   com.redfox.xray.Xraycore     (نوعِ export‌شده‌ی XrayCore؛ gomobile
+ *                                  نام نوع را lower-camel می‌کند)
+ *
+ * نمونه‌ی سراسریِ متغیر `Xray` به‌صورت فیلد استاتیک `xray` روی همین کلاس
+ * در دسترس است. متدها نیز به lower-camel تبدیل می‌شوند:
+ *   StartConfig(String,String) bool  → startConfig(String,String): boolean
+ *   AwaitExit()                      → awaitExit()
+ *   Stop()                           → stop()
+ *
+ * اگر AAR در بیلد موجود نباشد، [isAvailable] false می‌شود و پیام خطای روشن
+ * به‌جای کرش برمی‌گردد.
  */
 object XrayBridge {
 
-    private const val BRIDGE_CLASS = "com.redfox.xray.XrayCore"
+    private const val BRIDGE_CLASS = "com.redfox.xray.Xraycore"
 
     private val bridge: Any? by lazy {
         try {
             val cls = Class.forName(BRIDGE_CLASS)
-            cls.getDeclaredField("INSTANCE").get(null) // Kotlin object
-        } catch (e: ClassNotFoundException) {
-            null
+            // گومتغییر سراسری `Xray` به فیلد استاتیکِ هم‌نامِ lower-camel تبدیل می‌شود.
+            try {
+                cls.getDeclaredField("xray").get(null)
+            } catch (e: NoSuchFieldException) {
+                // بعضی نسخه‌های gomobile یک INSTANCE می‌سازند؛ هر دو را امتحان کن.
+                try {
+                    cls.getDeclaredField("INSTANCE").get(null)
+                } catch (_: Throwable) {
+                    cls.getDeclaredConstructor().newInstance()
+                }
+            }
         } catch (e: Throwable) {
-            try { Class.forName(BRIDGE_CLASS) } catch (_: Throwable) { null }
+            null
         }
     }
 
@@ -33,7 +52,7 @@ object XrayBridge {
         val method = b.javaClass.getMethod(
             "startConfig", String::class.java, String::class.java
         )
-        return method.invoke(b, jsonConfig, assetsDir) as? Boolean ?: false
+        return (method.invoke(b, jsonConfig, assetsDir) as? Boolean) ?: false
     }
 
     /** تا توقف هسته مسدود می‌ماند (روی رشته‌ی فراخوان اجرا شود). */
