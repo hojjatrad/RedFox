@@ -28,6 +28,7 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import ca.psiphon.PsiphonTunnel
+import com.msnguard.vpn.xray.UdpGwServer
 import com.msnguard.vpn.xray.XrayManager
 import com.msnguard.vpn.xray.XrayProfileStore
 import com.msnguard.vpn.xray.XraySubscription
@@ -1256,10 +1257,16 @@ class MsnGuardVpnService : VpnService(), NativeCore.CoreCallback, PsiphonTunnel.
                     failAndStop("رابط VPN وجود ندارد")
                     return@execute
                 }
-                // Xray SOCKS5 خودش UDP را حمل می‌کند؛ udpgw فقط برای DNS لوکال
-                // در دسترس نیست پس پرچم dnsOnlyUdpgw معنایی ندارد و DNS از
-                // مسیر SOCKS5 می‌رود.
+                // tun2socks بسته‌های UDP/DNS را به زبان udpgw می‌فرستد؛ در مسیر
+                // Psiphon خودِ سرور آن را حمل می‌کند، اما برای Xray دیمن محلی
+                // UdpGwServer این نقش را دارد: SOCKS5 UDP ASSOCIATE می‌گیرد و
+                // دیتاگرام‌ها را از داخل تونلِ اِکس‌رِی فوروارد می‌کند.
+                if (!UdpGwServer.start(XrayManager.SOCKS_PORT)) {
+                    failAndStop("سرویس UDP محلی شروع نشد")
+                    return@execute
+                }
                 if (!Tun2SocksManager.start(tunFd, XrayManager.SOCKS_PORT)) {
+                    UdpGwServer.stop()
                     failAndStop("مسیریابی کل دستگاه شروع نشد")
                     return@execute
                 }
@@ -2802,6 +2809,7 @@ class MsnGuardVpnService : VpnService(), NativeCore.CoreCallback, PsiphonTunnel.
         // Order matters: stop routing first so no more packets enter a tunnel
         // that is being torn down, then stop Psiphon itself.
         Tun2SocksManager.stop()
+        UdpGwServer.stop()
         stopTrafficPolling()
         TorManager.stop()
         stopPsiphonTunnel()

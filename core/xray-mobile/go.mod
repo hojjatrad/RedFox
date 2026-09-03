@@ -1,4 +1,4 @@
-module github.com/hojjatrad/redfox/xray-mobile
+module github.com/redfox/xray
 
 go 1.22
 

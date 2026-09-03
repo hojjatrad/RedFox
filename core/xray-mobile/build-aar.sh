@@ -29,7 +29,7 @@ echo "Fetching Xray-core…"
 go mod tidy || true
 
 echo "Building libxray.aar (this takes several minutes on first run)…"
-gomobile bind -target=android/arm64,android/arm \
+gomobile bind -javapkg=com.redfox -target=android/arm64,android/arm \
   -androidapi 26 \
   -trimpath \
   -o "$APP_LIBS/xray.aar" \

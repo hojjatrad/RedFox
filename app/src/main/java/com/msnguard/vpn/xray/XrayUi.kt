@@ -257,7 +257,20 @@ class XrayScreen(private val activity: MainActivity) {
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             .apply { bottomMargin = dp(16) })
+        // ردیف دکمه‌ی «جای‌گذاری از کلیپ‌بورد» برای راحتی
+        val pasteRow = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.START
+            setPadding(0, dp(10), 0, 0)
+        }
+        pasteRow.addView(activity.createSettingsButton("جای‌گذاری از کلیپ‌بورد") {
+            val clip = (ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+            val text = clip.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.text?.toString()
+            if (!text.isNullOrBlank()) { field.setText(text.trim()); field.setSelection(field.text.length) }
+            else toast("کلیپ‌بورد خالی است")
+        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(44)))
         sheet.addView(field, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        sheet.addView(pasteRow, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         val buttons = LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.END

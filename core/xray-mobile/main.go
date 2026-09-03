@@ -1,18 +1,15 @@
-// Package redfoxxray is the RedFox Xray mobile shim — a tiny gomobile-friendly
+// Package xray is the RedFox Xray mobile shim — a tiny gomobile-friendly
 // wrapper around Xray-core.
 //
-// It is built into libxray.aar by core/xray-mobile/build-aar.sh (also wired into
-// the GitHub Actions build). Kotlin reaches it through XrayBridge.kt as the
-// class com.redfox.xray.XrayCore with three methods:
+// Built into an AAR with:
+//   gomobile bind -javapkg=com.redfox -target=android/arm64,android/arm .
+// which produces class  com.redfox.xray.XrayCore  (Kotlin: XrayBridge.kt).
 //
-//   StartConfig(jsonConfig, assetsDir string) bool
-//   AwaitExit()                       // blocks until Stop()
+// Exposed methods (gomobile lower-cases the exported names for Java):
+//   StartConfig(jsonConfig, assetsDir String) boolean
+//   AwaitExit()
 //   Stop()
-//
-// Everything functional (SOCKS inbound, DNS, routing, the user's vless/vmess/
-// trojan/ss outbound) is described by the JSON config built on the Kotlin side;
-// this file only boots the core.
-package redfoxxray
+package xray
 
 import (
 	"os"
@@ -29,7 +26,8 @@ type XrayCore struct {
 	stopCh   chan struct{}
 }
 
-var instance = &XrayCore{}
+// Xray is the package-level singleton gomobile turns into an INSTANCE.
+var Xray = &XrayCore{}
 
 // StartConfig boots an Xray instance from a full JSON configuration.
 // assetsDir holds geoip.dat/geosite.dat (may be empty).
