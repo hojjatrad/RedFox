@@ -69,3 +69,6 @@ make-release.py
 app/libs/*.aar
 app/src/main/assets/xray/
 core/xray-mobile/go.sum
+app/libs-disabled/
+app/libs/xray.aar
+app/libs/*.jar

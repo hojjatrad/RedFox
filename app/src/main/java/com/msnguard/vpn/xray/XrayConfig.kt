@@ -114,7 +114,7 @@ object XrayConfig {
         if (security == "tls" || security == "reality") {
             put("tlsSettings", JSONObject().apply {
                 if (!sni.isNullOrBlank()) put("serverName", sni)
-                if (!fp.isNullOrBlank()) put("fingerprint", fp.ifBlank { "chrome" } else fp)
+                if (!fp.isNullOrBlank()) put("fingerprint", fp)
                 if (!alpn.isNullOrBlank()) {
                     val arr = JSONArray()
                     alpn.split(",").filter { it.isNotBlank() }.forEach { arr.put(it.trim()) }
@@ -288,7 +288,7 @@ object XrayConfig {
             } catch (e: Exception) { userPart }
             val mp = decodedUser.split(":", limit = 2)
             val pw = if (mp.size == 2) mp[1] else ""
-            Tuple4(mp[0], pw, uri.host ?: "", if (uri.port > 0) uri.port else 8388)
+            Quad(mp[0], pw, uri.host ?: "", if (uri.port > 0) uri.port else 8388)
         } else {
             val decoded = String(Base64.decode(main, Base64.DEFAULT or Base64.URL_SAFE or Base64.NO_PADDING), Charsets.UTF_8)
             val at = decoded.lastIndexOf("@")
@@ -296,7 +296,7 @@ object XrayConfig {
             val hp = decoded.substring(at + 1)
             val mp = creds.split(":", limit = 2)
             val hostPort = hp.split(":")
-            Tuple4(mp[0], if (mp.size == 2) mp[1] else "", hostPort[0], hostPort.getOrNull(1)?.toIntOrNull() ?: 8388)
+            Quad(mp[0], if (mp.size == 2) mp[1] else "", hostPort[0], hostPort.getOrNull(1)?.toIntOrNull() ?: 8388)
         }
         if (host.isBlank()) return null
         val outbound = JSONObject().apply {
@@ -314,12 +314,9 @@ object XrayConfig {
         return XrayProfile(newId(), "proxy", remark, outbound.toString(), sub)
     }
 
-    private data class Tuple4<A, B, C, D>(val a: A, val b: B, val c: C, val d: D) {
-        operator fun component1() = a
-        operator fun component2() = b
-        operator fun component3() = c
-        operator fun component4() = d
-    }
+    private data class Quad<out A, out B, out C, out D>(
+        val a: A, val b: B, val c: C, val d: D
+    )
 
     private fun newId(): String =
         java.util.UUID.randomUUID().toString().replace("-", "").take(16)

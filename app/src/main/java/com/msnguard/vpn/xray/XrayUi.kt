@@ -47,7 +47,7 @@ class XrayScreen(private val activity: MainActivity) {
         content.addView(LinearLayout(ctx).apply {
             gravity = Gravity.CENTER_VERTICAL
             addView(activity.createHeaderBackButton { close(page) }, LinearLayout.LayoutParams(dp(48), dp(56)))
-            addView(activity.label("کانفیگ‌ها و اشتراک", 22f, activity.INK, TypefaceStyle.MEDIUM))
+            addView(activity.label("کانفیگ‌ها و اشتراک", 22f, activity.INK, MainActivity.TypefaceStyle.MEDIUM))
         })
         content.addView(activity.label("لینک اشتراک یا کانفیگ خود را وارد کنید", 13.5f, activity.MUTED),
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)

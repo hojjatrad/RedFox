@@ -4697,7 +4697,7 @@ class MainActivity : Activity() {
         val radius: Int,
     )
 
-    private enum class TypefaceStyle { REGULAR, MEDIUM }
+    internal enum class TypefaceStyle { REGULAR, MEDIUM }
 
     private companion object {
         const val VPN_REQUEST = 100

@@ -1,5 +1,7 @@
 package com.msnguard.vpn.xray
 
+import com.msnguard.vpn.ConnectionLog
+
 import java.io.DataInputStream
 import java.io.InputStream
 import java.io.OutputStream
@@ -130,7 +132,7 @@ object UdpGwServer {
                             val target = stripSocksUdpAddr(rx, dp.length)
                             // پیدا کردن conid با مقصد (همان مقصدی که کلاینت خواسته بود)
                             val conid = conTargets.entries.firstOrNull {
-                                it.second.first.contentEquals(target.first) && it.second.second == target.second
+                                it.value.first.contentEquals(target.first) && it.value.second == target.second
                             }?.key
                                 // فال‌بک: آخرین conid (اکثر ترافیک DNS عملاً یکی است)
                                 ?: conTargets.keys.lastOrNull() ?: continue
